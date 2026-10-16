@@ -190,7 +190,7 @@ VN.load = p => {
   if (VN.onload) VN.onload(p.t);
 };
 </script>
-<script src="names.js"></script>
+<script src="names.js?v=2026-10-16T16:27"></script>
 <script>
 "use strict";
 const I = VN.idx;
@@ -273,7 +273,7 @@ function ensure(list) {
     requested.add(t);
     for (const sub of ["hist", "data"]) {
       const s = document.createElement("script");
-      s.src = sub + "/" + encodeURIComponent(t) + ".js";
+      s.src = sub + "/" + encodeURIComponent(t) + ".js?v=" + encodeURIComponent(I.built);   // never pair a new page with cached old data
       s.onerror = () => { $("charts").innerHTML = `<div class="err">Could not load the data for ${esc(t)}.</div>`; };
       document.head.appendChild(s);
     }
