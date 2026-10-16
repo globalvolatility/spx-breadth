@@ -10,7 +10,8 @@
   --bg: #f6f5f2; --surface: #fcfcfb; --border: #e3e1db; --grid: #ecebe6;
   --ink: #0b0b0b; --ink2: #52514e; --ink3: #85837d;
   --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300;
-  --band: rgba(42,120,214,.12); --up: #1a7f37; --down: #c2362f; --focus: #2a78d6;
+  --s7: #7a5af5; --s8: #0aa5b8;
+  --band: rgba(42,120,214,.12); --up: #1a7f37; --down: #c2362f; --focus: #2a78d6; --warn: #9a6700;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -18,7 +19,8 @@
     --bg: #121211; --surface: #1a1a19; --border: #2f2f2c; --grid: #262624;
     --ink: #ffffff; --ink2: #c3c2b7; --ink3: #8d8c84;
     --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #2f9e2f;
-    --band: rgba(57,135,229,.18); --up: #4cc26a; --down: #ef6b64; --focus: #3987e5;
+    --s7: #8f74f7; --s8: #1bb3c6;
+    --band: rgba(57,135,229,.18); --up: #4cc26a; --down: #ef6b64; --focus: #3987e5; --warn: #d6a33a;
   }
 }
 :root[data-theme="dark"] {
@@ -26,7 +28,8 @@
   --bg: #121211; --surface: #1a1a19; --border: #2f2f2c; --grid: #262624;
   --ink: #ffffff; --ink2: #c3c2b7; --ink3: #8d8c84;
   --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #2f9e2f;
-  --band: rgba(57,135,229,.18); --up: #4cc26a; --down: #ef6b64; --focus: #3987e5;
+  --s7: #8f74f7; --s8: #1bb3c6;
+  --band: rgba(57,135,229,.18); --up: #4cc26a; --down: #ef6b64; --focus: #3987e5; --warn: #d6a33a;
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink);
@@ -47,11 +50,18 @@ input[type=text] { cursor: text; width: 130px; text-transform: uppercase; }
 button:hover, select:hover { border-color: var(--ink3); }
 button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 button.on { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.chips .lbl { color: var(--ink3); font-size: 12px; width: 44px; }
+.chips button { font-size: 12px; padding: 3px 8px; border-radius: 999px; }
+.chips button.on { background: var(--chip, var(--ink)); border-color: var(--chip, var(--ink)); color: #fff; }
+.builder { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; margin: 10px 0 4px; }
+.builder .presets button { font-size: 12px; padding: 3px 8px; }
 .namehead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin: 4px 2px 10px; }
 .namehead .tk { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
 .namehead .meta { color: var(--ink2); font-size: 13px; }
 .tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 4px;
   border: 1px solid currentColor; vertical-align: 2px; }
+.banner { border: 1px solid var(--warn); color: var(--warn); border-radius: 8px; padding: 8px 12px; font-size: 13px; margin-bottom: 12px; }
 .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 12px; }
 .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
 .tile .k { color: var(--ink3); font-size: 12px; }
@@ -100,6 +110,7 @@ tbody tr { cursor: pointer; }
 tbody tr:hover { background: var(--grid); }
 tbody tr.sel { background: var(--band); }
 td.thin { color: var(--ink3); }
+td.model { color: var(--warn); }
 kbd { font: 11px ui-monospace, Menlo, monospace; border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; color: var(--ink2); }
 .err { color: var(--down); padding: 20px 0; }
 </style>
@@ -119,38 +130,47 @@ kbd { font: 11px ui-monospace, Menlo, monospace; border: 1px solid var(--border)
       <datalist id="tickers"></datalist>
       <button id="next" title="Next name in the table (→)">▶</button>
     </div>
+    <div class="group" id="tenorbtns"><span class="lbl">Tenor</span></div>
     <div class="group" id="ranges">
       <span class="lbl">Range</span>
       <button data-y="1">1Y</button><button data-y="2" class="on">2Y</button><button data-y="5">5Y</button>
       <button data-y="10">10Y</button><button data-y="0">All</button>
     </div>
     <div class="group">
-      <label><input type="checkbox" id="showspx" checked> SPX IV on vol chart</label>
+      <label><input type="checkbox" id="showspx" checked> SPX on charts</label>
     </div>
   </div>
 
   <div class="namehead" id="namehead"></div>
+  <div id="banner"></div>
   <div class="tiles" id="tiles"></div>
   <div id="charts"></div>
+  <div id="compare"></div>
+  <div id="lower"></div>
 
   <div class="card" style="margin-top:12px">
     <div class="charthead">
-      <h2>Screener</h2>
+      <h2 id="tbltitle">Screener</h2>
       <div class="group">
         <button data-kind="all" class="on">All</button><button data-kind="stock">Stocks</button><button data-kind="fund">ETFs and indices</button>
         <label style="margin-left:8px"><input type="checkbox" id="liquid"> Liquid only</label>
       </div>
     </div>
-    <div class="note" style="margin:0 0 6px">Click a row to chart it. Click a header to sort. Cheapness score: 0 = cheapest.</div>
+    <div class="note" style="margin:0 0 6px">Columns follow the tenor picked above. Click a row to chart it. Click a header to sort. Cheapness score (1M): 0 = cheapest. <span style="color:var(--warn)">Amber</span> 18M/24M values are the ORATS model, not listed options.</div>
     <div class="tablewrap"><table id="tbl"></table></div>
   </div>
-  <div class="note" style="margin-top:10px">Data as of the latest market close. For informational purposes only. IV is ex-earnings 30-day constant maturity; RV is 60-day close-to-close with earnings days removed.
-    Regime = SPX 30-day implied vol band. <kbd>←</kbd> <kbd>→</kbd> step through the table.</div>
+  <div class="note" style="margin-top:10px">Data as of the latest market close. For informational purposes only.
+    IV is ATM constant maturity, ex-earnings where ORATS provides it. 1M, 3M, 6M and 12M are ORATS constant-maturity points; 9M is interpolated in total variance between 6M and 12M.
+    18M and 24M come from listed expiries either side of the tenor where they exist (daily from 6 Oct 2026); otherwise from the ORATS 2-year model vol (18M interpolated between 12M and it), shown dashed and in amber, with no skew.
+    Skew = 25Δ put IV − 25Δ call IV. RV is close-to-close on split- and dividend-adjusted prices, earnings day and the day after left out, over trading-day windows; each tenor is paired with its own window (1M 21d, 3M 63d, 6M 126d, 9M 189d, 12M 252d, 18M 378d, 24M 504d).
+    Realised correlation is to SPX over the same window. Implied rho = beta × SPX IV ÷ name IV, with beta from that window. SPX implied correlation uses the CBOE formula on today's members at fixed weights.
+    Days where the ORATS surface-fit confidence is under <span id="maskconf"></span>% are blank. Regime = SPX 1M implied vol band.
+    <kbd>←</kbd> <kbd>→</kbd> step through the table.</div>
 </div>
 
 <script>
 "use strict";
-const VN = { idx: null, cache: {}, parts: {}, waiting: null };
+const VN = { idx: null, cache: {}, parts: {}, onload: null };
 VN.load = p => {
   if (p.cols) { VN.idx = p; return; }
   // Each name comes in two parts (hist = earlier years, data = this year); join them once both arrive.
@@ -158,10 +178,16 @@ VN.load = p => {
   got[p.p] = p;
   if (!got.hist || !got.data) return;
   const h = got.hist, c = got.data, first = h.s || c.s, out = { t: p.t, d0: VN.dix[first] };
-  for (const k of Object.keys(c)) if (Array.isArray(c[k])) out[k] = h[k].concat(c[k]);
+  for (const k of Object.keys(c)) {
+    if (!Array.isArray(c[k])) continue;
+    // Stored as integers: vols x10, correlations x100, source flags as is.
+    const sc = k.startsWith("co") ? 100 : k.startsWith("s1") || k.startsWith("s2") ? 1 : 10;
+    out[k] = h[k].concat(c[k]).map(v => v == null ? null : v / sc);
+  }
+  out.n = out.iv1M.length;
   delete VN.parts[p.t];
   VN.cache[p.t] = out;
-  if (VN.waiting === p.t) { VN.waiting = null; render(); }
+  if (VN.onload) VN.onload(p.t);
 };
 </script>
 <script src="names.js"></script>
@@ -169,38 +195,82 @@ VN.load = p => {
 "use strict";
 const I = VN.idx;
 const $ = id => document.getElementById(id);
-const C = Object.fromEntries(I.cols.map((c, i) => [c, i]));
-const ROWS = I.rows.map(r => Object.fromEntries(I.cols.map((c, i) => [c, r[i]])));
+const ROWS = I.rows.map((r, j) => {
+  const o = Object.fromEntries(I.cols.map((c, i) => [c, r[i]]));
+  for (const t of I.tenors) I.tcols.forEach((c, i) => { o[t + ":" + c] = I.trows[t][j][i]; });
+  o.lc2y = I.lc2y[j];
+  return o;
+});
 const BY = Object.fromEntries(ROWS.map(r => [r.Ticker, r]));
-const DATES = I.dates, ND = DATES.length, W = I.window;
+const DATES = I.dates, W2 = I.window, TEN = I.tenors, WIN = I.win;
 VN.dix = Object.fromEntries(DATES.map((d, i) => [d, i]));
-const SPXIV = I.spx.iv, SPXRV = I.spx.rv;
+const SPX = "SPX";
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const fmt = (v, d = 1) => v == null || !isFinite(v) ? "–" : v.toFixed(d);
 const sgn = (v, d = 1) => v == null || !isFinite(v) ? "–" : (v > 0 ? "+" : "") + v.toFixed(d);
+const pct = v => v == null ? "" : `${Math.round(v)}th pct`;
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const PAL = ["--s1", "--s2", "--s3", "--s4", "--s5", "--s6", "--s7", "--s8"];
+$("maskconf").textContent = I.maskConf;
 
-let state = { t: null, years: 2, kind: "all", liquid: false, sort: "Cheapness score", asc: true, hover: null };
-try { const y = localStorage.getItem("vn.years"); if (y !== null) state.years = +y; } catch (e) {}
+let state = { t: null, tenor: "1M", years: 2, kind: "all", liquid: false, sort: "Cheapness score", asc: true,
+  chips: ["iv1M", "iv3M", "iv12M", "rv30"], a: "iv1M", b: "iv3M" };
+try {
+  const y = localStorage.getItem("vn.years"); if (y !== null) state.years = +y;
+  const tn = localStorage.getItem("vn.tenor"); if (TEN.includes(tn)) state.tenor = tn;
+  const ch = JSON.parse(localStorage.getItem("vn.chips") || "null"); if (Array.isArray(ch)) state.chips = ch;
+  const ab = JSON.parse(localStorage.getItem("vn.ab") || "null"); if (ab) { state.a = ab[0]; state.b = ab[1]; }
+} catch (e) {}
+const save = (k, v) => { try { localStorage.setItem(k, typeof v === "string" ? v : JSON.stringify(v)); } catch (e) {} };
 
 $("builtline").textContent = `As of ${I.asof} · regime ${I.regime} · ${ROWS.length} names · built ${I.built}`;
 $("tickers").innerHTML = ROWS.map(r => `<option value="${esc(r.Ticker)}">${esc(r.Sector || "")}</option>`).join("");
+$("tenorbtns").insertAdjacentHTML("beforeend", TEN.map(t => `<button data-t="${t}">${t}</button>`).join(""));
+document.querySelectorAll("#tenorbtns button").forEach(b => b.onclick = () => setTenor(b.dataset.t));
 document.querySelectorAll("#ranges button").forEach(b => {
   b.classList.toggle("on", +b.dataset.y === state.years);
-  b.onclick = () => { state.years = +b.dataset.y; try { localStorage.setItem("vn.years", state.years); } catch (e) {}
+  b.onclick = () => { state.years = +b.dataset.y; save("vn.years", String(state.years));
     document.querySelectorAll("#ranges button").forEach(x => x.classList.toggle("on", x === b)); render(); };
 });
 $("showspx").onchange = render;
 
-// ---------- name selection ----------
-function select(t, push = true) {
-  t = (t || "").toUpperCase().trim();
-  if (!BY[t]) return false;
-  state.t = t; $("pick").value = t;
-  if (push && location.hash.slice(1) !== t) history.replaceState(null, "", "#" + t);
-  if (!VN.cache[t]) {
-    VN.waiting = t;
-    $("charts").innerHTML = `<div class="note">Loading ${esc(t)}…</div>`;
+// ---------- series catalogue (for chips and the spread builder) ----------
+// key -> {label, get(p) -> array aligned to p}. "spx:" keys read SPX's file, aligned to p.
+const CAT = {};
+TEN.forEach(t => {
+  CAT["iv" + t] = { label: "IV " + t, grp: "IV" };
+  CAT["sk" + t] = { label: "Skew " + t, grp: "Skew" };
+  CAT["co" + t] = { label: "Corr " + t, grp: "Corr", d: 2 };
+});
+I.rvWin.forEach(w => { CAT["rv" + w] = { label: `RV ${w === 252 ? "1y" : w + "d"}`, grp: "RV" }; });
+TEN.forEach(t => { CAT["spx:iv" + t] = { label: "SPX IV " + t, grp: "SPX" }; });
+[10, 30, 60, 252].forEach(w => { CAT["spx:rv" + w] = { label: `SPX RV ${w === 252 ? "1y" : w + "d"}`, grp: "SPX" }; });
+function align(src, p) {   // src's array re-indexed onto p's days
+  if (!src) return null;
+  const off = p.d0 - src.d0;
+  return k => { const a = src[k]; if (!a) return new Array(p.n).fill(null);
+    return Array.from({ length: p.n }, (_, i) => { const j = i + off; return j >= 0 && j < a.length ? a[j] : null; }); };
+}
+function series(key, p) {
+  if (key.startsWith("spx:")) { const f = align(VN.cache[SPX], p); return f ? f(key.slice(4)) : new Array(p.n).fill(null); }
+  return p[key] || new Array(p.n).fill(null);
+}
+const sub = (a, b) => a.map((v, i) => v == null || b[i] == null ? null : v - b[i]);
+
+// ---------- loading ----------
+function need() {
+  const r = BY[state.t], list = [state.t, SPX];
+  if (r && r["Sector ETF"] && BY[r["Sector ETF"]]) list.push(r["Sector ETF"]);
+  return [...new Set(list)];
+}
+const requested = new Set();
+function ensure(list) {
+  let ready = true;
+  for (const t of list) {
+    if (VN.cache[t]) continue;
+    ready = false;
+    if (requested.has(t)) continue;
+    requested.add(t);
     for (const sub of ["hist", "data"]) {
       const s = document.createElement("script");
       s.src = sub + "/" + encodeURIComponent(t) + ".js";
@@ -208,8 +278,31 @@ function select(t, push = true) {
       document.head.appendChild(s);
     }
   }
+  return ready;
+}
+VN.onload = () => { if (need().every(t => VN.cache[t])) render(); };
+
+// ---------- name and tenor selection ----------
+function setHash() {
+  const h = state.t + "/" + state.tenor;
+  if (location.hash.slice(1) !== h) history.replaceState(null, "", "#" + h);
+}
+function select(t, push = true) {
+  t = (t || "").toUpperCase().trim();
+  if (!BY[t]) return false;
+  state.t = t; $("pick").value = t;
+  if (push) setHash();
+  if (!ensure(need())) $("charts").innerHTML = `<div class="note">Loading ${esc(t)}…</div>`;
   renderHead(); render(); markRow();
   return true;
+}
+function setTenor(tn, push = true) {
+  if (!TEN.includes(tn)) return;
+  state.tenor = tn; save("vn.tenor", tn);
+  document.querySelectorAll("#tenorbtns button").forEach(b => b.classList.toggle("on", b.dataset.t === tn));
+  if (push && state.t) setHash();
+  if (state.t) { renderHead(); render(); }
+  renderTable();
 }
 $("pick").addEventListener("change", e => { if (!select(e.target.value)) e.target.value = state.t; });
 $("pick").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); if (!select(e.target.value)) e.target.select(); } });
@@ -222,34 +315,47 @@ function step(d) {
 }
 $("prev").onclick = () => step(-1); $("next").onclick = () => step(1);
 document.addEventListener("keydown", e => {
-  if (e.target.tagName === "INPUT" || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT" || e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.key === "ArrowLeft") { step(-1); e.preventDefault(); }
   if (e.key === "ArrowRight") { step(1); e.preventDefault(); }
 });
-window.addEventListener("hashchange", () => select(location.hash.slice(1), false));
+function fromHash() {
+  const [t, tn] = location.hash.slice(1).toUpperCase().split("/");
+  return { t: BY[t] ? t : null, tn: TEN.includes(tn) ? tn : null };
+}
+window.addEventListener("hashchange", () => { const h = fromHash(); if (h.tn) setTenor(h.tn, false); if (h.t) select(h.t, false); });
 
-// ---------- header + tiles ----------
+// ---------- header, banner, tiles ----------
 function renderHead() {
-  const r = BY[state.t];
+  const r = BY[state.t], T = state.tenor, g = k => r[T + ":" + k];
   const liq = r.Liquid === "yes" ? `<span class="tag" style="color:var(--up)">Liquid</span>`
     : `<span class="tag" style="color:var(--ink3)">Thin</span>`;
   const stocks = ROWS.filter(x => x.Kind === "stock" && x["Cheapness score"] != null)
     .sort((a, b) => a["Cheapness score"] - b["Cheapness score"]);
   const rank = stocks.findIndex(x => x.Ticker === r.Ticker);
+  const src = g("Source");
+  const srcTag = T === "18M" || T === "24M" ? (src === 1 ? `<span class="tag" style="color:var(--up)">${T} listed</span>`
+    : src === 2 ? `<span class="tag" style="color:var(--warn)">${T} ORATS model</span>` : "") : "";
   $("namehead").innerHTML = `<span class="tk">${esc(r.Ticker)}</span>
-    <span class="meta">${esc(r.Sector || (r.Kind === "fund" ? "ETF / index" : ""))}${r["Sector ETF"] ? " · sector ETF " + esc(r["Sector ETF"]) : ""}</span> ${liq}
+    <span class="meta">${esc(r.Sector || (r.Kind === "fund" ? "ETF / index" : ""))}${r["Sector ETF"] ? " · sector ETF " + esc(r["Sector ETF"]) : ""}</span> ${liq} ${srcTag}
     ${rank >= 0 ? `<span class="meta">Cheapness rank ${rank + 1} of ${stocks.length}</span>` : ""}`;
-  const pct = v => v == null ? "" : `${Math.round(v)}th pct`;
+  let ban = "";
+  if (g("IV") == null && r.lc2y > 0) ban = `ORATS could not fit a usable vol surface for ${esc(r.Ticker)} today (fit confidence under ${I.maskConf}%), so implied values are blank. That was also true on ${Math.round(r.lc2y)}% of days in the last two years. Realised vol and correlation are unaffected.`;
+  else if (r.lc2y >= 10) ban = `ORATS fit confidence was under ${I.maskConf}% on ${Math.round(r.lc2y)}% of days in the last two years; those days are blank on the implied charts.`;
+  $("banner").innerHTML = ban ? `<div class="banner">${ban}</div>` : "";
+  const w = WIN[T], spxp = VN.cache[SPX];
+  const last = a => { if (!a) return null; for (let i = a.length - 1; i >= Math.max(0, a.length - 5); i--) if (a[i] != null) return a[i]; return null; };
+  const ic = spxp ? last(spxp["ic" + T]) : null, rc = spxp ? last(spxp["rc" + T]) : null;
   const tiles = [
-    ["IV 1M", fmt(r["IV 1M"]), `${pct(r["IV pct (regime)"])} in regime`],
-    ["RV 60d", fmt(r["RV 60d"]), `2y floor ${fmt(r["2y RV floor"])}`],
-    ["IV − RV", sgn(r["IV-RV"]), `${pct(r["IV-RV pct (2y)"])} (2y)`],
-    ["Spread to SPX", sgn(r["Spread to SPX"]), r["Spread position in range %"] == null ? "" : `${Math.round(r["Spread position in range %"])}% of 2y realised range`],
-    ["Spread to ETF", sgn(r["Spread to sector ETF"]), r["Sector ETF"] ? "vs " + r["Sector ETF"] : ""],
-    ["Skew 25Δ P−C", sgn(r["Skew 25d P-C"]), `${pct(r["Skew pct (2y)"])} (2y)`],
-    ["Term 12M − 1M", sgn(r["Term 12M-1M"]), `3M ${fmt(r["IV 3M"])} · 12M ${fmt(r["IV 12M"])}`],
-    ["Implied rho", fmt(r["Implied rho"], 2), `realised corr ${fmt(r["Realised corr 1y"], 2)}`],
-    ["Cheapness", r["Cheapness score"] == null ? `<span class="na">–</span>` : fmt(r["Cheapness score"], 0), "0 = cheapest"],
+    [`IV ${T}`, fmt(g("IV")), `${pct(g("IV pct 2y"))} (2y)`],
+    [`Skew ${T}`, sgn(g("Skew")), g("Skew") == null ? "25Δ put − call" : `${pct(g("Skew pct 2y"))} (2y)`],
+    [`Spread to SPX ${T}`, sgn(g("Spread SPX")), g("Spread pos %") == null ? `SPX ${fmt(g("SPX IV"))}` : `${Math.round(g("Spread pos %"))}% of 2y realised range`],
+    [`RV ${w}d`, fmt(g("RV")), `IV − RV ${sgn(g("IV-RV"))}`],
+    [`IV − RV ${T}`, sgn(g("IV-RV")), `${pct(g("IV-RV pct 2y"))} (2y)`],
+    [`Implied rho ${T}`, fmt(g("Implied rho"), 2), `realised corr ${fmt(g("Realised corr"), 2)} (${w}d)`],
+    [`SPX implied corr ${T}`, fmt(ic, 0), `realised ${fmt(rc, 0)} (${w}d)`],
+    [`Term ${T} − 1M`, T === "1M" ? `<span class="na">–</span>` : sgn(g("Term vs 1M")), `1M ${fmt(r["1M:IV"])}`],
+    ["Cheapness (1M)", r["Cheapness score"] == null ? `<span class="na">–</span>` : fmt(r["Cheapness score"], 0), "0 = cheapest"],
     ["Opt volume 20d", r["Opt volume 20d"] == null ? `<span class="na">–</span>` : Math.round(r["Opt volume 20d"]).toLocaleString(), `${r["History days"] ? r["History days"].toLocaleString() + " days of history" : ""}`],
   ];
   $("tiles").innerHTML = tiles.map(([k, v, d]) =>
@@ -272,32 +378,36 @@ function rollMinMax(a, w) {
   }
   return [lo, hi];
 }
-function derive(p) {
-  if (p._d) return p._d;
-  const n = p.iv.length, o = p.d0, d = {};
-  const spxIv = i => SPXIV[o + i], spxRv = i => SPXRV[o + i];
-  const sub = (a, b) => a == null || b == null ? null : a - b;
-  d.spxiv = p.iv.map((_, i) => spxIv(i));
-  d.sp = p.iv.map((v, i) => sub(v, spxIv(i)));
-  d.rsp = p.rv.map((v, i) => sub(v, spxRv(i)));
-  [d.rlo, d.rhi] = rollMinMax(d.rsp, W);
-  [d.floor] = rollMinMax(p.rv, W);
-  d.esp = p.iv.map((v, i) => sub(v, p.eiv[i]));
-  d.ersp = p.rv.map((v, i) => sub(v, p.erv[i]));
-  d.term = p.iv12.map((v, i) => sub(v, p.iv[i]));
-  d.term3 = p.iv3.map((v, i) => sub(v, p.iv[i]));
-  d.rho = p.iv.map((v, i) => v && p.beta[i] != null && spxIv(i) != null ? p.beta[i] * spxIv(i) / v : null);
-  d.hasEtf = p.eiv.some(v => v != null);
-  return (p._d = d);
+function derive(p, T) {
+  p._d = p._d || {};
+  if (p._d[T]) return p._d[T];
+  const w = WIN[T], S = align(VN.cache[SPX], p), d = {};
+  d.iv = p["iv" + T]; d.sk = p["sk" + T]; d.rv = p["rv" + w]; d.co = p["co" + T];
+  d.siv = S("iv" + T); d.srv = S("rv" + w); d.ssk = S("sk" + T); d.ic = S("ic" + T); d.rc = S("rc" + T);
+  const src = p["s" + T];
+  if (src) {   // split 18M / 24M into listed (solid) and model (dashed) segments
+    d.ivL = d.iv.map((v, i) => src[i] === 1 ? v : null);
+    d.ivM = d.iv.map((v, i) => src[i] === 2 || (src[i] === 1 && src[i + 1] === 2) || (src[i] === 1 && src[i - 1] === 2) ? v : null);
+  }
+  d.sp = sub(d.iv, d.siv);
+  d.rsp = sub(d.rv, d.srv);
+  [d.rlo, d.rhi] = rollMinMax(d.rsp, W2);
+  [d.floor] = rollMinMax(d.rv, W2);
+  d.rho = d.co.map((c, i) => c == null || !d.rv[i] || !d.srv[i] || !d.siv[i] || !d.iv[i] ? null
+    : c * (d.rv[i] / d.srv[i]) * (d.siv[i] / d.iv[i]));
+  const etf = BY[p.t] && BY[p.t]["Sector ETF"] !== p.t && BY[p.t]["Sector ETF"];   // sector ETFs map to themselves
+  const E = etf && VN.cache[etf] ? align(VN.cache[etf], p) : null;
+  if (E) { d.etf = etf; d.esp = sub(d.iv, E("iv" + T)); d.ersp = sub(d.rv, E("rv" + w)); }
+  return (p._d[T] = d);
 }
 
 // ---------- charts ----------
 const CHARTS = [];
 function lineChart(host, cfg) {
-  // cfg: {title, sub, h, n, i0, series:[{label,color,data,dash,w}], band:{lo,hi,label}, zero, d, unit}
+  // cfg: {title, sub, h, n, i0, series:[{label,color,data,dash,w}], band:{lo,hi,label}, zero, d, d0}
   const card = document.createElement("div");
   card.className = "card chartcard";
-  const leg = cfg.series.map(s => `<span><i class="${s.dash ? "dash" : ""}" style="border-color:${s.color}"></i>${s.label}</span>`).join("")
+  const leg = cfg.series.filter(s => !s.nolegend).map(s => `<span><i class="${s.dash ? "dash" : ""}" style="border-color:${s.color}"></i>${s.label}</span>`).join("")
     + (cfg.band ? `<span><i class="box" style="background:var(--band);border:1px solid var(--s1)"></i>${cfg.band.label}</span>` : "");
   card.innerHTML = `<div class="charthead"><h2>${cfg.title}</h2><div class="legend">${leg}</div></div>
     <div class="plot"></div>${cfg.sub ? `<div class="note">${cfg.sub}</div>` : ""}<div class="tip"></div>`;
@@ -333,9 +443,7 @@ function lineChart(host, cfg) {
     `<line x1="${X(i)}" x2="${X(i)}" y1="${H - m.b}" y2="${H - m.b + 4}" stroke="var(--border)"/><text x="${X(i)}" y="${H - 6}" text-anchor="middle">${lab}</text>`).join("");
   if (cfg.zero && lo < 0 && hi > 0) g += `<line class="zero" x1="${m.l}" x2="${Wd - m.r}" y1="${Y(0)}" y2="${Y(0)}"/>`;
   if (cfg.band) {
-    let top = "", bot = [];
-    // band drawn as segments where both edges exist
-    let seg = [];
+    let top = "", seg = [];
     const flush = () => {
       if (seg.length > 1) {
         top += "M" + seg.map(i => X(i).toFixed(1) + "," + Y(cfg.band.hi[i]).toFixed(1)).join("L")
@@ -367,7 +475,7 @@ function lineChart(host, cfg) {
     const i = Math.round(a + (px - m.l) / (Wd - m.l - m.r) * (b - a));
     if (i < a || i > b) return leave();
     CHARTS.forEach(c => c.show(i));
-    let rows = cfg.series.map(s => `<div class="row"><span><i style="background:${s.color}"></i>${s.label}</span><b>${fmt(s.data[i], cfg.d ?? 1)}</b></div>`).join("");
+    let rows = cfg.series.filter(s => !s.nolegend || s.data[i] != null).map(s => `<div class="row"><span><i style="background:${s.color}"></i>${s.label}</span><b>${fmt(s.data[i], s.d ?? cfg.d ?? 1)}</b></div>`).join("");
     if (cfg.band) rows += `<div class="row"><span>${cfg.band.label}</span><b>${fmt(cfg.band.lo[i], cfg.d ?? 1)} to ${fmt(cfg.band.hi[i], cfg.d ?? 1)}</b></div>`;
     tip.innerHTML = `<b>${DATES[cfg.d0 + i]}</b>${rows}`;
     tip.style.display = "block";
@@ -408,18 +516,61 @@ function dateTicks(a, b, d0) {
   return out;
 }
 
+// ---------- term structure snapshot ----------
+function termCard(host, p) {
+  const S = align(VN.cache[SPX], p), n = p.n, lastIdx = a => { for (let i = n - 1; i >= n - 6 && i >= 0; i--) if (a[i] != null) return i; return -1; };
+  const iv = TEN.map(t => p["iv" + t]);
+  const at = back => TEN.map((t, k) => { const i = n - 1 - back; return i >= 0 ? iv[k][i] : null; });
+  const band = TEN.map((t, k) => {
+    const v = iv[k].slice(-W2).filter(x => x != null).sort((x, y) => x - y);
+    return v.length >= 20 ? [v[Math.floor(.1 * (v.length - 1))], v[Math.floor(.9 * (v.length - 1))]] : null;
+  });
+  const lines = [["Today", at(0), "--s1", 2.2], ["1 week ago", at(5), "--s3", 1.4], ["1 month ago", at(21), "--s4", 1.4], ["1 year ago", at(252), "--ink3", 1.2]];
+  if ($("showspx").checked && p.t !== SPX) lines.push(["SPX today", TEN.map(t => { const a = S("iv" + t); return a[n - 1]; }), "--s2", 1.4, true]);
+  const card = document.createElement("div"); card.className = "card chartcard"; host.appendChild(card);
+  const leg = lines.map(([l, , c, , dash]) => `<span><i class="${dash ? "dash" : ""}" style="border-color:${css(c)}"></i>${l}</span>`).join("")
+    + `<span><i class="box" style="background:var(--band);border:1px solid var(--s1)"></i>2y 10th–90th pct</span>`;
+  card.innerHTML = `<div class="charthead"><h2>Term structure</h2><div class="legend">${leg}</div></div><div class="plot"></div>
+    <div class="note">ATM IV by tenor. ${p.s24M ? "18M / 24M points from the ORATS model are hollow." : ""} Selected tenor marked.</div>`;
+  const plot = card.querySelector(".plot"), Wd = Math.max(280, plot.clientWidth), H = 230, m = { l: 40, r: 14, t: 10, b: 24 };
+  const vals = lines.flatMap(l => l[1]).concat(band.flat()).filter(v => v != null);
+  if (!vals.length) { plot.innerHTML = `<div class="note">No implied data.</div>`; return; }
+  let lo = Math.min(...vals), hi = Math.max(...vals); const pad = (hi - lo) * .08 || 1; lo -= pad; hi += pad;
+  const X = k => m.l + k / (TEN.length - 1) * (Wd - m.l - m.r), Y = v => m.t + (hi - v) / (hi - lo) * (H - m.t - m.b);
+  const ticks = niceTicks(lo, hi, 4);
+  let g = `<g class="grid">` + ticks.map(t => `<line x1="${m.l}" x2="${Wd - m.r}" y1="${Y(t)}" y2="${Y(t)}"/>`).join("") + `</g>`;
+  g += ticks.map(t => `<text x="${m.l - 6}" y="${Y(t) + 4}" text-anchor="end">${+t.toFixed(0)}</text>`).join("");
+  const sel = TEN.indexOf(state.tenor);
+  g += `<line x1="${X(sel)}" x2="${X(sel)}" y1="${m.t}" y2="${H - m.b}" stroke="var(--ink3)" stroke-dasharray="3 3"/>`;
+  g += TEN.map((t, k) => `<text x="${X(k)}" y="${H - 6}" text-anchor="middle" style="${k === sel ? "font-weight:700;fill:var(--ink)" : ""}">${t}</text>`).join("");
+  let bp = "", seg = [];
+  const flush = () => { if (seg.length > 1) bp += "M" + seg.map(k => X(k) + "," + Y(band[k][1])).join("L") + "L" + seg.slice().reverse().map(k => X(k) + "," + Y(band[k][0])).join("L") + "Z"; seg = []; };
+  band.forEach((b, k) => b ? seg.push(k) : flush()); flush();
+  g += `<path d="${bp}" fill="var(--band)"/>`;
+  const srcNow = { "18M": p.s18M ? p.s18M[n - 1] : 1, "24M": p.s24M ? p.s24M[n - 1] : 1 };
+  lines.forEach(([l, v, c, w, dash]) => {
+    let s = "", pen = false;
+    v.forEach((x, k) => { if (x == null) { pen = false; return; } s += (pen ? "L" : "M") + X(k) + "," + Y(x); pen = true; });
+    g += `<path d="${s}" fill="none" stroke="${css(c)}" stroke-width="${w}" ${dash ? 'stroke-dasharray="5 4"' : ""}/>`;
+    if (l === "Today") v.forEach((x, k) => { if (x == null) return; const model = srcNow[TEN[k]] === 2;
+      g += `<circle cx="${X(k)}" cy="${Y(x)}" r="3.5" fill="${model ? "var(--surface)" : css(c)}" stroke="${css(c)}" stroke-width="1.5"><title>${TEN[k]} ${fmt(x)}${model ? " (model)" : ""}</title></circle>`; });
+  });
+  plot.innerHTML = `<svg width="${Wd}" height="${H}" role="img" aria-label="Term structure">${g}</svg>`;
+}
+
 // ---------- regime table ----------
-function regimeCard(host, p) {
+function regimeCard(host, p, T) {
   const buckets = I.regimes.map(([lo, hi, name]) => ({ name, lo, hi, v: [] }));
-  for (let i = 0; i < p.iv.length; i++) {
-    const s = SPXIV[p.d0 + i], v = p.iv[i];
+  const s1 = align(VN.cache[SPX], p)("iv1M"), iv = p["iv" + T];
+  for (let i = 0; i < p.n; i++) {
+    const s = s1[i], v = iv[i];
     if (s == null || v == null) continue;
     const bk = buckets.find(k => s >= k.lo && s < k.hi); if (bk) bk.v.push(v);
   }
   const q = (a, f) => a[Math.min(a.length - 1, Math.max(0, Math.round(f * (a.length - 1))))];
   buckets.forEach(k => k.v.sort((x, y) => x - y));
   const all = buckets.flatMap(k => k.v.length >= 20 ? [q(k.v, .1), q(k.v, .9)] : []);
-  const now = BY[state.t]["IV 1M"];
+  const now = BY[state.t][T + ":IV"];
   if (now != null) all.push(now);
   if (!all.length) return;
   const lo = Math.min(...all) * 0.95, hi = Math.max(...all) * 1.05;
@@ -439,56 +590,105 @@ function regimeCard(host, p) {
   });
   const card = document.createElement("div");
   card.className = "card chartcard";
-  card.innerHTML = `<div class="charthead"><h2>IV 1M by SPX vol regime, full history</h2>
+  card.innerHTML = `<div class="charthead"><h2>IV ${T} by SPX vol regime, full history</h2>
     <div class="legend"><span><i class="box" style="background:var(--band);border:1px solid var(--s1)"></i>10th to 90th pct</span>
     <span><i style="border-color:var(--s1)"></i>median</span><span><i class="box" style="background:var(--s2);border-radius:50%;width:10px"></i>today</span></div></div>
     <div class="regimes">${rows}</div>
-    <div class="note">How this name's implied vol has traded on days when SPX 30-day IV was in each band. Today's regime is in bold.</div>`;
+    <div class="note">How this name's ${T} implied vol has traded on days when SPX 1M IV was in each band. Today's regime is in bold.</div>`;
   host.appendChild(card);
+}
+
+// ---------- compare: chips + spread builder ----------
+const PRESETS = [["iv1M", "iv3M"], ["iv3M", "iv12M"], ["iv1M", "iv12M"], ["iv12M", "iv24M"],
+  ["iv1M", "rv30"], ["iv1M", "rv10"], ["iv3M", "rv60"], ["iv12M", "rv252"], ["iv1M", "spx:iv1M"], ["sk1M", "sk12M"]];
+function compareCard(p, base) {
+  const host = $("compare"); host.innerHTML = "";
+  const card = document.createElement("div"); card.className = "card"; card.style.marginBottom = "12px";
+  const grp = (g, keys) => `<div class="chips"><span class="lbl">${g}</span>` + keys.map(k => {
+    const on = state.chips.includes(k), ci = state.chips.indexOf(k);
+    return `<button data-k="${k}" class="${on ? "on" : ""}" style="${on ? `--chip:${css(PAL[ci % PAL.length])}` : ""}">${CAT[k].label.replace(/^(IV|Skew|Corr|SPX) /, g === "SPX" ? "" : "")}</button>`;
+  }).join("") + `</div>`;
+  const opts = sel => Object.entries(CAT).map(([k, c]) => `<option value="${k}" ${k === sel ? "selected" : ""}>${c.label}</option>`).join("");
+  card.innerHTML = `<div class="charthead"><h2>Compare and spreads</h2><span class="sub">pick any series; build A − B</span></div>
+    ${grp("IV", TEN.map(t => "iv" + t))}${grp("RV", I.rvWin.map(w => "rv" + w))}${grp("Skew", TEN.map(t => "sk" + t))}
+    ${grp("Corr", TEN.map(t => "co" + t))}${grp("SPX", Object.keys(CAT).filter(k => k.startsWith("spx:")))}
+    <div class="builder"><span class="lbl sub">Spread</span><select id="spA">${opts(state.a)}</select><span>−</span><select id="spB">${opts(state.b)}</select>
+      <span class="presets">${PRESETS.map(([x, y], i) => `<button data-i="${i}">${CAT[x].label.replace("IV ", "")} − ${CAT[y].label.replace("IV ", "")}</button>`).join(" ")}</span></div>
+    <div id="cmpcharts"></div>`;
+  host.appendChild(card);
+  card.querySelectorAll(".chips button").forEach(b => b.onclick = () => {
+    const k = b.dataset.k, i = state.chips.indexOf(k);
+    if (i >= 0) state.chips.splice(i, 1); else { state.chips.push(k); if (state.chips.length > 8) state.chips.shift(); }
+    save("vn.chips", state.chips); compareCard(p, base);
+  });
+  const setAB = (x, y) => { state.a = x; state.b = y; save("vn.ab", [x, y]); compareCard(p, base); };
+  $("spA").onchange = e => setAB(e.target.value, state.b);
+  $("spB").onchange = e => setAB(state.a, e.target.value);
+  card.querySelectorAll(".presets button").forEach(b => b.onclick = () => setAB(...PRESETS[+b.dataset.i]));
+  const ch = $("cmpcharts");
+  const sel = state.chips.filter(k => CAT[k]).map((k, i) => ({ label: CAT[k].label, color: css(PAL[i % PAL.length]), data: series(k, p), d: CAT[k].d,
+    dash: k.startsWith("spx:") }));
+  if (sel.length) lineChart(ch, { ...base, title: "Selected series", h: 260, series: sel });
+  const A = series(state.a, p), B = series(state.b, p), sp = sub(A, B);
+  const [lo, hi] = rollMinMax(sp, W2);
+  const isCorr = CAT[state.a].grp === "Corr" && CAT[state.b].grp === "Corr";
+  lineChart(ch, { ...base, title: `${CAT[state.a].label} − ${CAT[state.b].label}`, h: 220, zero: true, d: isCorr ? 2 : 1,
+    series: [{ label: "Spread", color: css("--s1"), data: sp, w: 1.8 }],
+    band: { lo, hi, label: "2y range" } });
 }
 
 // ---------- main render ----------
 function render() {
   const t = state.t, p = VN.cache[t];
-  if (!p) return;
-  const d = derive(p), n = p.iv.length;
+  if (!p || !VN.cache[SPX]) return;
+  const T = state.tenor, w = WIN[T], d = derive(p, T), n = p.n;
+  renderHead();
   const i0 = state.years ? Math.max(0, n - Math.round(state.years * 252)) : 0;
   const host = $("charts"); host.innerHTML = ""; CHARTS.length = 0;
-  const S = k => css(k), base = { n, i0, d0: p.d0 };
-  const volSeries = [
-    { label: "IV 1M", color: S("--s1"), data: p.iv, w: 1.8 },
-    { label: "IV 12M", color: S("--s3"), data: p.iv12 },
-    { label: "RV 60d", color: S("--s2"), data: p.rv },
+  const S = k => css(k), base = { n, i0, d0: p.d0 }, spx = $("showspx").checked && t !== SPX;
+  const ivs = d.ivL ? [{ label: `IV ${T} listed`, color: S("--s1"), data: d.ivL, w: 1.8 },
+    { label: `IV ${T} model`, color: S("--s1"), data: d.ivM, w: 1.4, dash: true }]
+    : [{ label: `IV ${T}`, color: S("--s1"), data: d.iv, w: 1.8 }];
+  const volSeries = ivs.concat([
+    { label: `RV ${w}d`, color: S("--s2"), data: d.rv },
     { label: "2y RV floor", color: S("--s2"), data: d.floor, dash: true, w: 1.2 },
-  ];
-  if ($("showspx").checked && t !== "SPX") volSeries.push({ label: "SPX IV 1M", color: S("--ink3"), data: d.spxiv, w: 1.1 });
-  lineChart(host, { ...base, title: "Implied vs realised vol", h: 280, series: volSeries,
-    sub: "2y RV floor = lowest 60-day realised vol over the prior two years." });
-  if (t !== "SPX") lineChart(host, { ...base, title: "Spread to SPX", h: 260, zero: true,
+  ]);
+  if (spx) volSeries.push({ label: `SPX IV ${T}`, color: S("--ink3"), data: d.siv, w: 1.1 });
+  lineChart(host, { ...base, title: `Implied vs realised vol · ${T}`, h: 280, series: volSeries,
+    sub: `RV over ${w} trading days, matched to the ${T} tenor. 2y RV floor = lowest ${w}-day realised vol over the prior two years.` });
+  if (t !== SPX) lineChart(host, { ...base, title: `Spread to SPX · ${T}`, h: 250, zero: true,
     series: [{ label: "Implied spread", color: S("--s1"), data: d.sp, w: 1.8 }, { label: "Realised spread", color: S("--s2"), data: d.rsp, w: 1.2 }],
     band: { lo: d.rlo, hi: d.rhi, label: "2y realised spread range" },
-    sub: "Implied spread = IV 1M − SPX IV 1M. Realised = RV 60d − SPX RV 60d. Implied near the bottom of the shaded range is cheap." });
+    sub: `Implied spread = IV ${T} − SPX IV ${T}. Realised = RV ${w}d − SPX RV ${w}d. Implied near the bottom of the shaded range is cheap.` });
   const two1 = document.createElement("div"); two1.className = "two"; host.appendChild(two1);
-  if (d.hasEtf && BY[t]["Sector ETF"]) lineChart(two1, { ...base, title: `Spread to ${esc(BY[t]["Sector ETF"])}`, zero: true,
+  if (d.etf) lineChart(two1, { ...base, title: `Spread to ${esc(d.etf)} · ${T}`, zero: true,
     series: [{ label: "Implied", color: S("--s1"), data: d.esp }, { label: "Realised", color: S("--s2"), data: d.ersp }] });
-  lineChart(two1, { ...base, title: "Skew: 25Δ put − 25Δ call IV", zero: true,
-    series: [{ label: "1M skew", color: S("--s4"), data: p.skew }] });
+  const skS = [{ label: `${t} skew ${T}`, color: S("--s4"), data: d.sk, w: 1.8 }];
+  if (spx) skS.push({ label: `SPX skew ${T}`, color: S("--ink3"), data: d.ssk, w: 1.1 });
+  lineChart(two1, { ...base, title: `Skew: 25Δ put − 25Δ call · ${T}`, zero: true, series: skS,
+    sub: T === "18M" || T === "24M" ? "Listed expiries only; no skew on model days." : "" });
   const two2 = document.createElement("div"); two2.className = "two"; host.appendChild(two2);
-  lineChart(two2, { ...base, title: "Term structure", zero: true,
-    series: [{ label: "12M − 1M", color: S("--s3"), data: d.term }, { label: "3M − 1M", color: S("--s5"), data: d.term3 }] });
-  if (t !== "SPX") lineChart(two2, { ...base, title: "Implied rho vs realised correlation", zero: true, d: 2,
-    series: [{ label: "Implied rho", color: S("--s1"), data: d.rho }, { label: "Realised corr 1y", color: S("--s2"), data: p.corr }],
-    sub: "Implied rho = beta × SPX IV ÷ stock IV." });
-  regimeCard(host, p);
+  if (t !== SPX) lineChart(two2, { ...base, title: `Implied rho vs realised correlation · ${T}`, zero: true, d: 2,
+    series: [{ label: "Implied rho", color: S("--s1"), data: d.rho }, { label: `Realised corr ${w}d`, color: S("--s2"), data: d.co }],
+    sub: `Implied rho = beta × SPX IV ${T} ÷ ${esc(t)} IV ${T}, beta over ${w} days.` });
+  lineChart(two2, { ...base, title: `SPX implied vs realised correlation · ${T}`, zero: false,
+    series: [{ label: "Implied", color: S("--s7"), data: d.ic, w: 1.6 }, { label: `Realised ${w}d`, color: S("--s2"), data: d.rc }],
+    sub: "Index correlation, 0–100. CBOE formula on today's SPX members at fixed weights." });
+  compareCard(p, base);
+  const lower = $("lower"); lower.innerHTML = "";
+  termCard(lower, p);
+  regimeCard(lower, p, T);
 }
 
 // ---------- screener table ----------
-const TCOLS = [
-  ["Ticker", "Ticker", 0], ["Sector", "Sector", 0], ["Cheapness score", "Cheapness", 0], ["IV 1M", "IV 1M", 1], ["RV 60d", "RV 60d", 1], ["IV-RV", "IV − RV", 1],
-  ["IV pct (regime)", "IV pct regime", 0], ["Spread to SPX", "Spread SPX", 1], ["Spread position in range %", "Spread pos %", 0],
-  ["Spread to sector ETF", "Spread ETF", 1], ["Skew 25d P-C", "Skew", 1], ["Term 12M-1M", "Term", 1],
-  ["Opt volume 20d", "Opt vol 20d", 0],
-];
+function tcols() {
+  const T = state.tenor, w = WIN[T];
+  return [["Ticker", "Ticker", 0], ["Sector", "Sector", 0], ["Cheapness score", "Cheap 1M", 0],
+    [T + ":IV", `IV ${T}`, 1], [T + ":IV pct 2y", "IV pct 2y", 0], [T + ":RV", `RV ${w}d`, 1], [T + ":IV-RV", "IV − RV", 1],
+    [T + ":Spread SPX", "Spread SPX", 1], [T + ":Spread pos %", "Spread pos %", 0], [T + ":Skew", "Skew", 1],
+    [T + ":Skew pct 2y", "Skew pct", 0], [T + ":Implied rho", "Impl rho", 2], [T + ":Realised corr", "Real corr", 2],
+    [T + ":Term vs 1M", T === "1M" ? "Term" : `${T} − 1M`, 1], ["Opt volume 20d", "Opt vol 20d", 0]];
+}
 function visibleRows() {
   let rs = ROWS.filter(r => (state.kind === "all" || r.Kind === state.kind) && (!state.liquid || r.Liquid === "yes"));
   const k = state.sort, dir = state.asc ? 1 : -1;
@@ -499,15 +699,19 @@ function visibleRows() {
   });
 }
 function renderTable() {
+  const T = state.tenor, C = tcols();
+  if (state.sort.includes(":") && !state.sort.startsWith(T + ":")) state.sort = T + ":" + state.sort.split(":")[1];
+  $("tbltitle").textContent = `Screener · ${T}`;
   const rs = visibleRows();
-  const head = "<thead><tr>" + TCOLS.map(([k, lab]) =>
+  const head = "<thead><tr>" + C.map(([k, lab]) =>
     `<th data-k="${esc(k)}">${lab}${state.sort === k ? (state.asc ? " ▲" : " ▼") : ""}</th>`).join("") + "</tr></thead>";
-  const body = "<tbody>" + rs.map(r => `<tr data-t="${esc(r.Ticker)}" class="${r.Ticker === state.t ? "sel" : ""}">` + TCOLS.map(([k, , d]) => {
+  const body = "<tbody>" + rs.map(r => `<tr data-t="${esc(r.Ticker)}" class="${r.Ticker === state.t ? "sel" : ""}">` + C.map(([k, , d]) => {
     const v = r[k];
     if (k === "Ticker") return `<td><b>${esc(v)}</b></td>`;
     if (k === "Sector") return `<td class="thin">${esc(v || (r.Kind === "fund" ? "ETF / index" : ""))}</td>`;
     if (k === "Opt volume 20d") return `<td class="${r.Liquid === "yes" ? "" : "thin"}">${v == null ? "–" : Math.round(v).toLocaleString()}</td>`;
-    return `<td>${fmt(v, d)}</td>`;
+    const model = (T === "18M" || T === "24M") && r[T + ":Source"] === 2 && /:(IV|IV-RV|Spread SPX|Term vs 1M|Implied rho)$/.test(k);
+    return `<td class="${model ? "model" : ""}">${fmt(v, d)}</td>`;
   }).join("") + "</tr>").join("") + "</tbody>";
   $("tbl").innerHTML = head + body;
   $("tbl").querySelectorAll("th").forEach(th => th.onclick = () => {
@@ -528,9 +732,9 @@ $("liquid").onchange = e => { state.liquid = e.target.checked; renderTable(); };
 let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(render, 150); });
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
 
-renderTable();
-const first = location.hash.slice(1).toUpperCase();
-select(BY[first] ? first : (visibleRows()[0] || ROWS[0]).Ticker);
+const h0 = fromHash();
+setTenor(h0.tn || state.tenor, false);
+select(h0.t || (visibleRows()[0] || ROWS[0]).Ticker);
 </script>
 </body>
 </html>
