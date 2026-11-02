@@ -156,15 +156,15 @@ kbd { font: 11px ui-monospace, Menlo, monospace; border: 1px solid var(--border)
         <label style="margin-left:8px"><input type="checkbox" id="liquid"> Liquid only</label>
       </div>
     </div>
-    <div class="note" style="margin:0 0 6px">Columns follow the tenor picked above. Click a row to chart it. Click a header to sort. Cheapness score (1M): 0 = cheapest. <span style="color:var(--warn)">Amber</span> 18M/24M values are the ORATS model, not listed options.</div>
+    <div class="note" style="margin:0 0 6px">Columns follow the tenor picked above. Click a row to chart it. Click a header to sort. Cheapness score (1M): 0 = cheapest. <span style="color:var(--warn)">Amber</span> 18M/24M values are model values, not listed options.</div>
     <div class="tablewrap"><table id="tbl"></table></div>
   </div>
   <div class="note" style="margin-top:10px">Data as of the latest market close. For informational purposes only.
-    IV is ATM constant maturity, ex-earnings where ORATS provides it. 1M, 3M, 6M and 12M are ORATS constant-maturity points; 9M is interpolated in total variance between 6M and 12M.
-    18M and 24M come from listed expiries either side of the tenor where they exist (daily from 6 Oct 2026); otherwise from the ORATS 2-year model vol (18M interpolated between 12M and it), shown dashed and in amber, with no skew.
+    IV is ATM constant maturity, ex-earnings where available. 1M, 3M, 6M and 12M are constant-maturity points; 9M is interpolated in total variance between 6M and 12M.
+    18M and 24M come from listed expiries either side of the tenor where they exist (daily from 6 Oct 2026); otherwise from a 2-year model vol (18M interpolated between 12M and it), shown dashed and in amber, with no skew.
     Skew = 25Δ put IV − 25Δ call IV. RV is close-to-close on split- and dividend-adjusted prices, earnings day and the day after left out, over trading-day windows; each tenor is paired with its own window (1M 21d, 3M 63d, 6M 126d, 9M 189d, 12M 252d, 18M 378d, 24M 504d).
     Realised correlation is to SPX over the same window. Implied rho = beta × SPX IV ÷ name IV, with beta from that window. SPX implied correlation uses the CBOE formula on today's members at fixed weights.
-    Days where the ORATS surface-fit confidence is under <span id="maskconf"></span>% are blank. Regime = SPX 1M implied vol band.
+    Days where the surface-fit confidence is under <span id="maskconf"></span>% are blank. Regime = SPX 1M implied vol band.
     <kbd>←</kbd> <kbd>→</kbd> step through the table.</div>
 </div>
 
@@ -335,13 +335,13 @@ function renderHead() {
   const rank = stocks.findIndex(x => x.Ticker === r.Ticker);
   const src = g("Source");
   const srcTag = T === "18M" || T === "24M" ? (src === 1 ? `<span class="tag" style="color:var(--up)">${T} listed</span>`
-    : src === 2 ? `<span class="tag" style="color:var(--warn)">${T} ORATS model</span>` : "") : "";
+    : src === 2 ? `<span class="tag" style="color:var(--warn)">${T} model</span>` : "") : "";
   $("namehead").innerHTML = `<span class="tk">${esc(r.Ticker)}</span>
     <span class="meta">${esc(r.Sector || (r.Kind === "fund" ? "ETF / index" : ""))}${r["Sector ETF"] ? " · sector ETF " + esc(r["Sector ETF"]) : ""}</span> ${liq} ${srcTag}
     ${rank >= 0 ? `<span class="meta">Cheapness rank ${rank + 1} of ${stocks.length}</span>` : ""}`;
   let ban = "";
-  if (g("IV") == null && r.lc2y > 0) ban = `ORATS could not fit a usable vol surface for ${esc(r.Ticker)} today (fit confidence under ${I.maskConf}%), so implied values are blank. That was also true on ${Math.round(r.lc2y)}% of days in the last two years. Realised vol and correlation are unaffected.`;
-  else if (r.lc2y >= 10) ban = `ORATS fit confidence was under ${I.maskConf}% on ${Math.round(r.lc2y)}% of days in the last two years; those days are blank on the implied charts.`;
+  if (g("IV") == null && r.lc2y > 0) ban = `No usable vol surface could be fit for ${esc(r.Ticker)} today (fit confidence under ${I.maskConf}%), so implied values are blank. That was also true on ${Math.round(r.lc2y)}% of days in the last two years. Realised vol and correlation are unaffected.`;
+  else if (r.lc2y >= 10) ban = `Fit confidence was under ${I.maskConf}% on ${Math.round(r.lc2y)}% of days in the last two years; those days are blank on the implied charts.`;
   $("banner").innerHTML = ban ? `<div class="banner">${ban}</div>` : "";
   const w = WIN[T], spxp = VN.cache[SPX];
   const last = a => { if (!a) return null; for (let i = a.length - 1; i >= Math.max(0, a.length - 5); i--) if (a[i] != null) return a[i]; return null; };
@@ -531,7 +531,7 @@ function termCard(host, p) {
   const leg = lines.map(([l, , c, , dash]) => `<span><i class="${dash ? "dash" : ""}" style="border-color:${css(c)}"></i>${l}</span>`).join("")
     + `<span><i class="box" style="background:var(--band);border:1px solid var(--s1)"></i>2y 10th–90th pct</span>`;
   card.innerHTML = `<div class="charthead"><h2>Term structure</h2><div class="legend">${leg}</div></div><div class="plot"></div>
-    <div class="note">ATM IV by tenor. ${p.s24M ? "18M / 24M points from the ORATS model are hollow." : ""} Selected tenor marked.</div>`;
+    <div class="note">ATM IV by tenor. ${p.s24M ? "18M / 24M model points are hollow." : ""} Selected tenor marked.</div>`;
   const plot = card.querySelector(".plot"), Wd = Math.max(280, plot.clientWidth), H = 230, m = { l: 40, r: 14, t: 10, b: 24 };
   const vals = lines.flatMap(l => l[1]).concat(band.flat()).filter(v => v != null);
   if (!vals.length) { plot.innerHTML = `<div class="note">No implied data.</div>`; return; }
