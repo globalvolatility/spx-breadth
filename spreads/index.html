@@ -367,8 +367,8 @@ function renderCharts() {
     { label: "Spread", color: "var(--s1)", data: s, d: 2 }] });
   lineChart(host, { title: `Percentile, ${winLabel()}`, i0: Math.max(i0, firstValid(p, 0)), d: 0, h: 180, series: [
     { label: "Percentile", color: "var(--s2)", data: p, d: 0 }] });
-  lineChart(host, { title: "Month 4 and VIX", i0, d: 0, h: 200, series: [
-    { label: "Month 4", color: "var(--s1)", data: D.m[4] }, { label: "VIX", color: "var(--s4)", data: D.vix }] });
+  lineChart(host, { title: `Month ${a} and VIX`, i0, d: 0, h: 200, series: [
+    { label: `Month ${a}`, color: "var(--s1)", data: D.m[a] }, { label: "VIX", color: "var(--s4)", data: D.vix }] });
 }
 
 // Curve for the chosen date and any added dates, by month or by days to expiry.
